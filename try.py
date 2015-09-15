@@ -56,5 +56,11 @@ def find_next_word(word):
 	index = np.transpose(np.nonzero(next_word))[:,1]
 	return word_count_dict[word].keys()[index]
 
+s = 'a'
+x = find_next_word(s)
+y = find_next_word(x)
+z = find_next_word(y)
+w = find_next_word(z)
+q = find_next_word(w)
 
-print find_next_word('new')
+print s + ' ' + x + " " + y + " " + z + " "+ w +' '+ q + "."
