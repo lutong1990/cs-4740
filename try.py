@@ -1,66 +1,125 @@
-from nltk.tokenize import RegexpTokenizer
+from rewrite import n_gram_model, sentence_generator, genre
 import codecs
 import os
-import nltk
 import sys
+import re
 from sets import Set
-import numpy as np
-
-def bigram_count(filename):
-    Bigram = {}
-    wordSet = Set()
-    tokenizer = RegexpTokenizer('\w+')    
-    with codecs.open(filename, 'r') as f:
-        for line in f:
-            words = tokenizer.tokenize(line.lower())
-            if len(words) > 0:
-                for i, word in enumerate(words): 
-                    if i < len(words)-1:    
-                        if word not in wordSet:
-                            wordSet.add(word)    
-                            Bigram[word] = {}    
-                        bigram = words[i+1]        
-                        if bigram in Bigram[word]:
-                            Bigram[word][bigram] += 1
-                        else:
-                            Bigram[word][bigram] = 1
-
-#calculating the probabilities   
-    for key,value in Bigram.iteritems():
-        n = sum(Bigram[key].values())
-        for key2,value2 in Bigram[key].iteritems():
-            Bigram[key][key2] = float(value2)/n
-            
-    return Bigram
 
 
-if __name__ == '__main__':
-    word_count_dict = bigram_count('/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_1.txt')
-
-
-def find_next_word(word):
+def tokenize(path):
+	word_count_dict = {}
 	'''
-	Here I use multinomial distribution to model the word generation
+	with codecs.open(path,  'r') as f:
+		sing_line=""        
+		for line in f:
+			if len(line)>0:
+				sing_line=sing_line + line
 
-	A little background for multinomial distribution:
-		it is a generlization of binomial distribution, in a way that the number of possible outcomes is greater than two 
-
-	Use of the function:
-		input a word -> it will use the probability of all words after it in the corpora, to randomly select a following word
-						-> output the following word
-
-	test of the function:
-		run codes several times, change 'new' to something else, and run it multiple times again, you will see how the outputs change
+	sing_line = sing_line.replace("_", "")
+	sing_line = sing_line.replace("*", "")
+	sing_line = re.sub('\s+',' ',sing_line)
+	sing_line = re.sub(' +',' ',sing_line)
 	'''
-	next_word = np.random.multinomial(1,word_count_dict[word].values(),1)
-	index = np.transpose(np.nonzero(next_word))[:,1]
-	return word_count_dict[word].keys()[index]
+	sing_lines = []    
+	#for i in range(len(filename)):     
+	for filesing in path:
+		with codecs.open(filesing,  'r') as f1:
+		#f1=filesing        
+			sing_line1=""        
+			for line in f1:
+				if len(line)>0:
+					sing_line1=sing_line1 + line        
+		sing_lines.append(sing_line1)
 
-s = 'new'
-x = find_next_word(s)
-y = find_next_word(x)
-z = find_next_word(y)
-w = find_next_word(z)
-q = find_next_word(w)
+	for sing_line in sing_lines:
+		sing_line = sing_line.replace("_", "")
+		sing_line = sing_line.replace("*", "")
+		sing_line = re.sub('\s+',' ',sing_line)
+		sing_line = re.sub(' +',' ',sing_line)
 
-print s + ' ' + x + " " + y + " " + z + " "+ w +' '+ q + "."
+	words = re.findall(r"[^\W\d_]+|\d+|[\W+^\s]", sing_line.lower())
+	word_1 = []       
+
+	for word_0 in words: 
+		if word_0 is not ' ':
+			word_1.append(word_0)
+
+	return word_1
+
+children_books = ['/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_1.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_4.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_5.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_6.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_7.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/children/the_junior_classics_vol_8.txt']
+
+children_test = ['/home/tong/Documents/CS5740/Project1/test_books/children/the_magic_city.txt']
+
+
+if __name__ == '__main__': 
+	docs_children = tokenize(children_books) 
+	docs_test = tokenize(children_test)
+
+
+
+children = n_gram_model(docs_children)
+children.unigram_model()
+children.bigram_model()
+#print Set(n_gram_object.uni_count.values())
+
+children.get_prob(1)
+children.get_prob(2)
+
+children_t = n_gram_model(docs_test)
+children_t.unigram_model()
+children_t.bigram_model()
+
+children_t.get_prob(1)
+children_t.get_prob(2)
+
+
+
+crime_books = ['/home/tong/Documents/CS5740/Project1/train_books/crime/arsene_lupin.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/crime/a_thief_in_the_night.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/crime/crime_and_punishment.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/crime/the_adventures_of_sherlock_holmes.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/crime/the_extraordinary_adventures_of_arsene_lupin.txt',
+'/home/tong/Documents/CS5740/Project1/train_books/crime/the_mysterious_affair_at_styles.txt']
+
+crime_test = ['/home/tong/Documents/CS5740/Project1/test_books/crime/the_daffodil_mystery.txt',
+'/home/tong/Documents/CS5740/Project1/test_books/crime/the_moon_rock.txt']
+
+
+
+if __name__ == '__main__': 
+	docs_crime = tokenize(crime_books) 
+	docs_crime_test = tokenize(crime_test)
+
+
+
+crime = n_gram_model(docs_crime)
+crime.unigram_model()
+crime.bigram_model()
+crime.get_prob(1)
+crime.get_prob(2)
+
+crime_t = n_gram_model(docs_crime_test)
+crime_t.unigram_model()
+crime_t.bigram_model()
+crime_t.get_prob(1)
+crime_t.get_prob(2)
+
+train = [crime,children]
+t_label = ['crime', 'children']
+
+d = genre(train, t_label, children_t, 'children')
+d.by_perplexity(6,2)
+
+
+
+'''
+n_gram_object.plot(1)
+s = sentence_generator(n_gram_object)
+s.simulate('There is', 'no', 20, 2, output=True)
+'''
+
